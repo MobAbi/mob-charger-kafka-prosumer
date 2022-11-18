@@ -1,2 +1,2 @@
 #!/bin/bash
-java -cp target/mobocpp-prosumer-1.1.5-jar-with-dependencies.jar ch.mobility.kafka.MobConducer $1 $2
+java -cp target/mob-charger-kafka-prosumer-0.0.1-jar-with-dependencies.jar ch.mobility.kafka.MobConducer $1 $2
