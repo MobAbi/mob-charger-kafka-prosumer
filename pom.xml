@@ -4,7 +4,7 @@
   <groupId>ch.mobility</groupId>
   <artifactId>mob-charger-kafka-prosumer</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.3</version>
+  <version>0.0.4</version>
   <name>mob-charger-kafka-prosumer</name>
   <url>http://maven.apache.org</url>
 
@@ -53,7 +53,7 @@
       <groupId>com.github.MobAbi</groupId>
 <!--      <groupId>ch.mobility</groupId>-->
       <artifactId>mob-charger-events</artifactId>
-      <version>0.0.3</version>
+      <version>0.0.4</version>
     </dependency>
 
     <dependency>
