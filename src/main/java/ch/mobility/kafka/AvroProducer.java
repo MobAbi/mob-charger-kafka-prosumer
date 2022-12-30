@@ -21,32 +21,18 @@ public class AvroProducer {
 
     private static Logger LOGGER = LoggerFactory.getLogger(AvroProducer.class);
 
-    private static String bootstrapServer;
-    private static String registryUrl;
-    private static String topicname;
+    private final String bootstrapServer;
+    private final String registryUrl;
+    private final String topicname;
+    private Producer producer;
 
-    public static void init(String bootstrapServerValue, String registryUrlValue, String topicnameValue) {
+    public AvroProducer(String bootstrapServerValue, String registryUrlValue, String topicnameValue) {
         if (bootstrapServerValue == null || "".equals(bootstrapServerValue)) throw new IllegalArgumentException("bootstrapServerValue");
         if (registryUrlValue == null || "".equals(registryUrlValue)) throw new IllegalArgumentException("registryUrlValue");
         if (topicnameValue == null || "".equals(topicnameValue)) throw new IllegalArgumentException("topicnameValue");
         bootstrapServer = bootstrapServerValue;
         registryUrl = registryUrlValue;
         topicname = topicnameValue;
-    }
-
-    private static AvroProducer INSTANCE = null;
-
-    public static AvroProducer get() {
-        if (INSTANCE == null) {
-            INSTANCE = new AvroProducer();
-        }
-        return INSTANCE;
-    }
-
-    private Producer producer;
-
-    public AvroProducer() {
-        producer = createProducer();
     }
 
     private Producer createProducer() {

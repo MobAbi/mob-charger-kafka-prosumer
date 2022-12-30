@@ -19,65 +19,29 @@ import java.util.Properties;
 public class AvroConsumer<T extends GenericRecord> {
 
     final static int MAX_EXCEPTIONS = 3;
+    private static Duration duration = Duration.ofMillis(100);
 
     private static Logger LOGGER = LoggerFactory.getLogger(AvroConsumer.class);
 
-    private static String bootstrapServer = null;
-    private static String registryUrl = null;
-    private static String topicname = null;
-    private static String consumerGroupId = null;
-    private static IncomingKafkaMessageCallback incomingKafkaMessageCallback = null;
-    private static MobOCPPStartupShutdownKafkaMessageCallback mobOCPPStartupShutdownKafkaMessageCallback = null;
+    private final ConsumerThread consumerThread;
 
-    public static void init(
+    public AvroConsumer(
             String bootstrapServerValue,
             String registryUrlValue,
             String topicnameValue,
             String consumerGroupIdValue,
             IncomingKafkaMessageCallback incomingKafkaMessageCallbackValue) {
-        init(bootstrapServerValue,
-             registryUrlValue,
-             topicnameValue,
-             consumerGroupIdValue,
-             incomingKafkaMessageCallbackValue,
-             null);
+        this(bootstrapServerValue, registryUrlValue, topicnameValue, consumerGroupIdValue, incomingKafkaMessageCallbackValue, null);
     }
 
-    public static void init(
+    public AvroConsumer(
             String bootstrapServerValue,
             String registryUrlValue,
             String topicnameValue,
             String consumerGroupIdValue,
             IncomingKafkaMessageCallback incomingKafkaMessageCallbackValue,
             MobOCPPStartupShutdownKafkaMessageCallback mobOCPPStartupShutdownKafkaMessageCallbackValue) {
-        if (bootstrapServerValue == null || "".equals(bootstrapServerValue)) throw new IllegalArgumentException("bootstrapServerValue");
-        if (registryUrlValue == null || "".equals(registryUrlValue)) throw new IllegalArgumentException("registryUrlValue");
-        if (topicnameValue == null || "".equals(topicnameValue)) throw new IllegalArgumentException("topicnameValue");
-        if (consumerGroupIdValue == null || "".equals(consumerGroupIdValue)) throw new IllegalArgumentException("consumerGroupIdValue");
-        if (incomingKafkaMessageCallbackValue == null) throw new IllegalArgumentException("incomingKafkaMessageCallback");
-        bootstrapServer = bootstrapServerValue;
-        registryUrl = registryUrlValue;
-        topicname = topicnameValue;
-        consumerGroupId = consumerGroupIdValue;
-        incomingKafkaMessageCallback = incomingKafkaMessageCallbackValue;
-        mobOCPPStartupShutdownKafkaMessageCallback = mobOCPPStartupShutdownKafkaMessageCallbackValue;
-        get(); // Start the Consumer-Thread
-    }
-
-    private static AvroConsumer INSTANCE = null;
-
-    public static AvroConsumer get() {
-        if (INSTANCE == null) {
-            INSTANCE = new AvroConsumer();
-        }
-        return INSTANCE;
-    }
-
-    private static Duration duration = Duration.ofMillis(100);
-    private final ConsumerThread consumerThread;
-
-    private AvroConsumer() {
-        consumerThread = new ConsumerThread(incomingKafkaMessageCallback);
+        consumerThread = new ConsumerThread(bootstrapServerValue, registryUrlValue, topicnameValue, consumerGroupIdValue, incomingKafkaMessageCallbackValue, mobOCPPStartupShutdownKafkaMessageCallbackValue);
         new Thread(consumerThread).start();
     }
 
@@ -87,13 +51,34 @@ public class AvroConsumer<T extends GenericRecord> {
 
     private static class ConsumerThread<T extends GenericRecord> implements Runnable {
 
+        private final String bootstrapServer;
+        private final String registryUrl;
+        private final String topicname;
+        private final String consumerGroupId;
+        private final MobOCPPStartupShutdownKafkaMessageCallback mobOCPPStartupShutdownKafkaMessageCallback;
         private final IncomingKafkaMessageCallback incomingKafkaMessageCallback;
         private Consumer<String, GenericRecord> consumer = null;
         private boolean run = true;
 
-        ConsumerThread(IncomingKafkaMessageCallback incomingKafkaMessageCallback) {
-            if (incomingKafkaMessageCallback == null) throw new IllegalArgumentException("incomingKafkaMessageCallback == null - call init(...)!!!");
-            this.incomingKafkaMessageCallback = incomingKafkaMessageCallback;
+        ConsumerThread(
+                String bootstrapServerValue,
+                String registryUrlValue,
+                String topicnameValue,
+                String consumerGroupIdValue,
+                IncomingKafkaMessageCallback incomingKafkaMessageCallbackValue,
+                MobOCPPStartupShutdownKafkaMessageCallback mobOCPPStartupShutdownKafkaMessageCallbackValue
+        ) {
+            if (bootstrapServerValue == null || "".equals(bootstrapServerValue)) throw new IllegalArgumentException("bootstrapServerValue");
+            if (registryUrlValue == null || "".equals(registryUrlValue)) throw new IllegalArgumentException("registryUrlValue");
+            if (topicnameValue == null || "".equals(topicnameValue)) throw new IllegalArgumentException("topicnameValue");
+            if (consumerGroupIdValue == null || "".equals(consumerGroupIdValue)) throw new IllegalArgumentException("consumerGroupIdValue");
+            if (incomingKafkaMessageCallbackValue == null) throw new IllegalArgumentException("incomingKafkaMessageCallback");
+            this.bootstrapServer = bootstrapServerValue;
+            this.registryUrl = registryUrlValue;
+            this.topicname = topicnameValue;
+            this.consumerGroupId = consumerGroupIdValue;
+            this.incomingKafkaMessageCallback = incomingKafkaMessageCallbackValue;
+            this.mobOCPPStartupShutdownKafkaMessageCallback = mobOCPPStartupShutdownKafkaMessageCallbackValue;
         }
 
         private Consumer<String, GenericRecord> createConsumer() {
@@ -112,7 +97,7 @@ public class AvroConsumer<T extends GenericRecord> {
             Consumer<String, GenericRecord> consumer = new KafkaConsumer<String, GenericRecord>(props);
             consumer.subscribe(Arrays.asList(topicname));
 
-            LOGGER.info("AvroConsumer subscribed to topic '" + topicname + "' on host '" + AvroConsumer.bootstrapServer + "'");
+            LOGGER.info("AvroConsumer subscribed to topic '" + topicname + "' on host '" + bootstrapServer + "'");
             return consumer;
         }
 

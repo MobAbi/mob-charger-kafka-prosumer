@@ -85,8 +85,8 @@ public class MobConducer {
 
         IncomingKafkaMessageCallbackImpl incomingKafkaMessageCallback = new IncomingKafkaMessageCallbackImpl();
 
-        AvroConsumer.init(bootstrapServer, registryUrl, TopicnameHelper.MOB2CHARGER, "MobConducer", incomingKafkaMessageCallback);
-        AvroProducer.init(bootstrapServer, registryUrl, TopicnameHelper.CHARGER2MOB);
+        final AvroConsumer avroConsumer = new AvroConsumer(bootstrapServer, registryUrl, TopicnameHelper.MOB2CHARGER, "MobConducer", incomingKafkaMessageCallback);
+        final AvroProducer avroProducer = new AvroProducer(bootstrapServer, registryUrl, TopicnameHelper.CHARGER2MOB);
 
         try {
             boolean run = true;
@@ -95,12 +95,12 @@ public class MobConducer {
                 if (record == null) {
                     Thread.sleep(50L);
                 } else {
-                    AvroProducer.get().send(record);
+                    avroProducer.send(record);
                 }
             }
         } finally {
-            AvroProducer.get().close();
-            AvroConsumer.get().close();
+            avroProducer.close();
+            avroConsumer.close();
         }
     }
 

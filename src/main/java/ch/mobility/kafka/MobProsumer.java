@@ -33,9 +33,9 @@ public class MobProsumer {
 
         validate(bootstrapServer, registryUrl);
 
-        AvroProducer.init(bootstrapServer, registryUrl, TopicnameHelper.MOB2CHARGER);
+        AvroProducer avroProducer = new AvroProducer(bootstrapServer, registryUrl, TopicnameHelper.MOB2CHARGER);
         IncomingKafkaMessageCallback4ExpectedClass callback = new IncomingKafkaMessageCallback4ExpectedClass();
-        AvroConsumer.init(bootstrapServer, registryUrl, TopicnameHelper.CHARGER2MOB, "MobProsumer", callback);
+        AvroConsumer avroConsumer = new AvroConsumer(bootstrapServer, registryUrl, TopicnameHelper.CHARGER2MOB, "MobProsumer", callback);
 
         try {
             Console console = System.console();
@@ -57,18 +57,18 @@ public class MobProsumer {
                     } else if (match(splitted, 1,"help")) {
                         printHelp();
                     } else if (match(splitted, 1, "status")) {
-                        AvroProducer.get().requestStatusConnected(messageId);
+                        avroProducer.requestStatusConnected(messageId);
 //                        received = callback.receive(CSStatusConnectedResponse.class, messageId, MAX_WAIT_FOR_RESPONSE_MS, MAX_NUMBER_OF_OCPP_BACKENDS);
                         received = callback.receive(CSStatusConnectedResponse.class, messageId, MAX_WAIT_FOR_RESPONSE_MS, MAX_NUMBER_OF_OCPP_BACKENDS);
                     } else if (match(splitted, 1, 2, "recently")) {
                         Integer daysOfHistoryData = splitted.length > 1 ? Integer.valueOf(splitted[1]) : null;
-                        AvroProducer.get().requestRecentlyConnected(messageId, daysOfHistoryData);
+                        avroProducer.requestRecentlyConnected(messageId, daysOfHistoryData);
                         received = callback.receive(CSRecentlyConnectedResponse.class, messageId, MAX_WAIT_FOR_RESPONSE_MS, MAX_NUMBER_OF_OCPP_BACKENDS);
                     } else if (match(splitted, 2, 4, "status")) {
                         String id = splitted[1];
                         Integer connectorId = splitted.length > 2 ? Integer.valueOf(splitted[2]) : null;
                         Integer daysOfHistoryData = splitted.length > 3 ? Integer.valueOf(splitted[3]) : null;
-                        AvroProducer.get().requestStatusForId(messageId, id, connectorId, daysOfHistoryData);
+                        avroProducer.requestStatusForId(messageId, id, connectorId, daysOfHistoryData);
                         received = callback.receive(CSStatusForIdResponse.class, messageId, MAX_WAIT_FOR_RESPONSE_MS, 1);
                     } else if (match(splitted, 3, 5, "start")) {
                         String id = splitted[1];
@@ -76,40 +76,40 @@ public class MobProsumer {
                         Integer connectorId = Integer.valueOf(splitted.length > 3 ? splitted[3] : "1");
                         Integer maxCurrent = (splitted.length > 4 ? Integer.valueOf(splitted[4]) : null);
                         Integer numberOfPhases = (splitted.length > 5 ? Integer.valueOf(splitted[5]) : null);
-                        AvroProducer.get().requestStart(messageId, id, connectorId, tagId, maxCurrent, numberOfPhases);
+                        avroProducer.requestStart(messageId, id, connectorId, tagId, maxCurrent, numberOfPhases);
                         received = callback.receive(CSStartChargingResponse.class, messageId, MAX_WAIT_FOR_RESPONSE_MS, 1);
                     } else if (match(splitted, 2, 3, "stop")) {
                         String id = splitted[1];
                         Integer connectorId = Integer.valueOf(splitted.length > 2 ? splitted[2] : "1");
-                        AvroProducer.get().requestStop(messageId, id, connectorId);
+                        avroProducer.requestStop(messageId, id, connectorId);
                         received = callback.receive(CSStopChargingResponse.class, messageId, MAX_WAIT_FOR_RESPONSE_MS, 1);
                     } else if (match(splitted, 2, "reset")) {
                         String id = splitted[1];
-                        AvroProducer.get().requestReset(messageId, id);
+                        avroProducer.requestReset(messageId, id);
                         received = callback.receive(CSChangeChargingCurrentResponse.class, messageId, MAX_WAIT_FOR_RESPONSE_MS, 1);
                     } else if (match(splitted, 2, 3,"unlock")) {
                         String id = splitted[1];
                         Integer connectorId = Integer.valueOf(splitted.length > 2 ? splitted[2] : "1");
-                        AvroProducer.get().requestUnlock(messageId, id, connectorId);
+                        avroProducer.requestUnlock(messageId, id, connectorId);
                         received = callback.receive(CSUnlockResponse.class, messageId, MAX_WAIT_FOR_RESPONSE_MS, 1);
                     } else if (match(splitted, 3, 5, "profile")) {
                         String id = splitted[1];
                         Integer maxCurrent = Integer.valueOf(splitted[2]);
                         Integer connectorId = Integer.valueOf(splitted.length > 3 ? splitted[3] : "1");
                         Integer numberOfPhases = (splitted.length > 4 ? Integer.valueOf(splitted[4]) : null);
-                        AvroProducer.get().requestProfile(messageId, id, connectorId, maxCurrent, numberOfPhases);
+                        avroProducer.requestProfile(messageId, id, connectorId, maxCurrent, numberOfPhases);
                         received = callback.receive(CSChangeChargingCurrentResponse.class, messageId, MAX_WAIT_FOR_RESPONSE_MS, 1);
                     } else if (match(splitted, 3, 4, "trigger")) {
                         String id = splitted[1];
                         String trigger = splitted[2];
                         Integer connectorId = Integer.valueOf(splitted.length > 3 ? splitted[3] : "1");
-                        AvroProducer.get().requestTrigger(messageId, id, connectorId, trigger);
+                        avroProducer.requestTrigger(messageId, id, connectorId, trigger);
                         received = callback.receive(CSTriggerResponse.class, messageId, MAX_WAIT_FOR_RESPONSE_MS, 1);
                     } else if (match(splitted, 3, 4, "availability")) {
                         String id = splitted[1];
                         boolean isOperative = Boolean.valueOf(splitted[2]).booleanValue();
                         Integer connectorId = Integer.valueOf(splitted.length > 3 ? splitted[3] : "1");
-                        AvroProducer.get().requestChangeOperationalStatus(messageId, id, connectorId, isOperative);
+                        avroProducer.requestChangeOperationalStatus(messageId, id, connectorId, isOperative);
                         received = callback.receive(CSOperationalStatusResponse.class, messageId, MAX_WAIT_FOR_RESPONSE_MS, 1);
                     }
                     else {
@@ -121,8 +121,8 @@ public class MobProsumer {
                 }
             }
         } finally {
-            AvroProducer.get().close();
-            AvroConsumer.get().close();
+            avroProducer.close();
+            avroConsumer.close();
         }
     }
 
